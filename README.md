@@ -1,2 +1,2 @@
 # TenziesOnline
-A simple dice racing game created with React &amp; Socket.io 
+A simple WIP dice racing game created with React &amp; Socket.io 
