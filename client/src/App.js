@@ -1,83 +1,113 @@
 import React from "react"
-import Die from "./Components/Die"
-import {nanoid} from "nanoid"
-import Confetti from "react-confetti"
+
+//Components
+import SocketClient from './Components/SocketClient.js';
+import Tenzies from "./Components/Tenzies";
+import NewPlayer from "./Components/NewPlayer";
+import { connect } from "socket.io-client";
+import RoomInput from "./Components/RoomInput";
 
 export default function App() {
 
-    const [dice, setDice] = React.useState(allNewDice())
-    const [tenzies, setTenzies] = React.useState(false)
-    
-    React.useEffect(() => {
-        const allHeld = dice.every(die => die.isHeld)
-        const firstValue = dice[0].value
-        const allSameValue = dice.every(die => die.value === firstValue)
-        if (allHeld && allSameValue) {
-            setTenzies(true)
-        }
-    }, [dice])
+    const ENDPOINT = 'http://localhost:3001'
 
-    function generateNewDie() {
-        return {
-            value: Math.ceil(Math.random() * 6),
-            isHeld: false,
-            id: nanoid()
+    // Player state
+    
+    const [roomState, setRoomState] = React.useState(null)
+    const [username, setUsername] = React.useState("")
+    const [user, setUser] = React.useState("")
+    const [socket, setSocket] = React.useState(null)
+    const [room, setRoom] = React.useState("")
+
+
+    function connectRoom(room, user) {
+        socket?.emit("connectRoom", room, user)
+        console.log("connectRoom triggered")
+    }
+
+    // Socket events
+    React.useEffect(() =>
+    {
+        // On mount initialize the socket connection
+        setSocket(SocketClient)
+
+        // Dispose gracefully
+        return () => {
+            if (socket) socket.disconnect()
         }
-    }
+    }, [])
+
+    // This will eventually be the "update game-state" useEffect hook
+    // React.useEffect(() => 
+    // {
+    //     if (socket) {
+    //         socket.on('opponentMove', (clients) => {
+    //             setGamestate(clients)
+    //         })
+    //     }
+
+    // }, [socketClient])
+
+    React.useEffect(() =>
+    {
+        socket?.emit("newUser", user)
+        console.log(`newUser event emitted from ${user}`)
+    }, [socket, user])
     
-    function allNewDice() {
-        const newDice = []
-        for (let i = 0; i < 10; i++) {
-            newDice.push(generateNewDie())
+    React.useEffect(()=> {
+        if(socket) {
+            socket.on('connectRoom', (msg) => console.log(msg))
         }
-        return newDice
-    }
-    
-    function rollDice() {
-        if(!tenzies) {
-            setDice(oldDice => oldDice.map(die => {
-                return die.isHeld ? 
-                    die :
-                    generateNewDie()
-            }))
-        } else {
-            setTenzies(false)
-            setDice(allNewDice())
+    }, [socket])
+
+    React.useEffect(()=>{
+        if(socket) {
+            socket.on('startGame', (roomData) => {
+                setRoomState(roomData)
+                setTimeout(()=> console.log(roomState), 5000)
+                })
         }
+    }, [socket])
+
+    function startGame() {
+        console.log(room)
+        socket.emit('startGame', (room))
     }
-    
-    function holdDice(id) {
-        setDice(oldDice => oldDice.map(die => {
-            return die.id === id ? 
-                {...die, isHeld: !die.isHeld} :
-                die
-        }))
-    }
-    
-    const diceElements = dice.map(die => (
-        <Die 
-            key={die.id} 
-            value={die.value} 
-            isHeld={die.isHeld} 
-            holdDice={() => holdDice(die.id)}
-        />
-    ))
-    
+
     return (
         <main>
-            {tenzies && <Confetti />}
-            <h1 className="title">Tenzies</h1>
-            <p className="instructions">Roll until all dice are the same. 
-            Click each die to freeze it at its current value between rolls.</p>
-            <div className="dice-container">
-                {diceElements}
-            </div>
-            <button 
-                className="roll-dice" 
-                onClick={rollDice}
-            >
-                {tenzies ? "New Game" : "Roll"}
-            </button>
+            <RoomInput 
+                room = {room}
+                setRoom = {setRoom}
+                connectRoom = {connectRoom}
+            />
+            {user ? 
+                <>
+                    <Tenzies
+                        roomState = {roomState}
+                        socket = {socket}
+                        user = {user}
+                    />
+                    <Tenzies
+                        roomState = {roomState}
+                        socket = {socket}
+                        user = {user}
+                    />
+                </>
+            :
+                <NewPlayer 
+                    setUser = {setUser}
+                    user = {user}
+                    setUsername = {setUsername}
+                    username = {username}
+                    setRoom = {setRoom}
+                    room = {room}
+                    connectRoom = {connectRoom}
+                />
+
+            }
+        <button onClick={startGame}> Start Game </button>
+        <h1>Room: {room} </h1>
         </main>
     )
 }
