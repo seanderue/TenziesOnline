@@ -4,21 +4,25 @@ import React from "react"
 import SocketClient from './Components/SocketClient.js';
 import Tenzies from "./Components/Tenzies";
 import NewPlayer from "./Components/NewPlayer";
-import { connect } from "socket.io-client";
 import RoomInput from "./Components/RoomInput";
 
 export default function App() {
 
-    const ENDPOINT = 'http://localhost:3001'
+    const ENDPOINT = 'http://localhost:3002'
 
     // Player state
-    
-    const [roomState, setRoomState] = React.useState(null)
+
+    const [receivedData, setReceivedData] = React.useState(false)
+    // const [roomState, setRoomState] = React.useState({})
     const [username, setUsername] = React.useState("")
     const [user, setUser] = React.useState("")
     const [socket, setSocket] = React.useState(null)
     const [room, setRoom] = React.useState("")
 
+    function sendUserToDatabase(userSent)
+    {
+        socket?.emit("newUser", userSent)
+    }
 
     function connectRoom(room, user) {
         socket?.emit("connectRoom", room, user)
@@ -47,31 +51,36 @@ export default function App() {
     //     }
 
     // }, [socketClient])
+    
 
-    React.useEffect(() =>
-    {
-        socket?.emit("newUser", user)
-        console.log(`newUser event emitted from ${user}`)
-    }, [socket, user])
+    //BREADCRUMB: Moved socket "newUser" event to newPlayer component
+        //!!!Testing removing this hook to stop doubling users
+    // React.useEffect(() =>
+    // {
+    //     sendUserToDatabase(user)
+    //     console.log(`newUser event emitted from ${user}`)
+    // }, [socket, user])
     
     React.useEffect(()=> {
-        if(socket) {
-            socket.on('connectRoom', (msg) => console.log(msg))
-        }
+        socket?.on('connectRoom', (msg) => console.log(msg))
     }, [socket])
 
     React.useEffect(()=>{
         if(socket) {
             socket.on('startGame', (roomData) => {
-                setRoomState(roomData)
-                setTimeout(()=> console.log(roomState), 5000)
-                })
+                setReceivedData(true)
+            })
         }
     }, [socket])
 
     function startGame() {
-        console.log(room)
-        socket.emit('startGame', (room))
+        
+        console.log(`room: ${room}`)
+        console.log(`socket:`)
+        console.log(socket)
+        console.log(`socket truthiness: ${socket? true: false}`)
+
+        socket.emit('startGame', room, user)
     }
 
     return (
@@ -81,18 +90,17 @@ export default function App() {
                 setRoom = {setRoom}
                 connectRoom = {connectRoom}
             />
-            {user ? 
+            {user && receivedData ? 
                 <>
                     <Tenzies
-                        roomState = {roomState}
                         socket = {socket}
                         user = {user}
                     />
                     <Tenzies
-                        roomState = {roomState}
                         socket = {socket}
                         user = {user}
                     />
+
                 </>
             :
                 <NewPlayer 
@@ -102,6 +110,7 @@ export default function App() {
                     username = {username}
                     setRoom = {setRoom}
                     room = {room}
+                    sendUserToDatabase = {sendUserToDatabase}
                     connectRoom = {connectRoom}
                 />
 

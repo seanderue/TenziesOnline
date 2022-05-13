@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useContext } from "react"
+import React from "react"
 
 export default function NewPlayer(props)
 {
@@ -11,6 +11,7 @@ export default function NewPlayer(props)
                     event.preventDefault()
                     console.log(`Username is ${props.username}`)
                     console.log(`Room is ${props.room}`)
+                    props.sendUserToDatabase(props.username)
                     props.setUser(props.username)
                     props.connectRoom(props.room, props.username)
                     console.log(`${props.user} submitted form`)

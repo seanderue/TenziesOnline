@@ -27,4 +27,7 @@ May have to turn the tenzies user component and tenzies oponent component into t
 ---
 
 ✅ Create updatePlayer() function
+✅ Fix getPlayerByUsername()
+✅ Remove data duplication when someone is trying to join a room
+⬜️ Allow multiple people to roll in a room
 ⬜️ update playerstate on disconnect
