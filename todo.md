@@ -29,5 +29,11 @@ May have to turn the tenzies user component and tenzies oponent component into t
 ✅ Create updatePlayer() function
 ✅ Fix getPlayerByUsername()
 ✅ Remove data duplication when someone is trying to join a room
-⬜️ Allow multiple people to roll in a room
+⬜️ Allow multiple people to roll in a room -> (Create specifically owned boards)
+⬜️ Create a player count state
+⬜️ Make holds & wins into emittabled events
+hold:
+emit hold event
+//Will have to change the index to respective user's
+//Maybe find boardIndex by user
 ⬜️ update playerstate on disconnect

@@ -202,18 +202,19 @@ const getBoardIndexByUsername = (username) =>
     }
 
 
- function generateNewDie() {
+ function generateNewDie(boardId) {
     return {
         value: Math.ceil(Math.random() * 6),
         isHeld: false,
-        id: nanoid()
+        id: nanoid(),
+        ownedByBoardId: boardId
     }
 }
 
-function allNewDice(diceCount) {
+function allNewDice(diceCount, boardId) {
     const newDice = []
     for (let i = 0; i < diceCount; i++) {
-        newDice.push(generateNewDie())
+        newDice.push(generateNewDie(boardId))
     }
     return newDice
 }
@@ -247,21 +248,31 @@ function rollDice(username) {
         board.dice = board.dice.map(die => {
                     return die.isHeld ?
                     die :
-                    generateNewDie()
+                    generateNewDie(board.id)
                     })  
 
     } else {
         player.hasWon = false
-        board.dice = allNewDice()
+        board.dice = allNewDice(board.id)
     }
 }
 
-function holdDice(roomId, dieId) {
-    roomId.boards[0].dice = dice.map(die => {
-        return die.id === dieId ?
-            {...die, isHeld: !die.isHeld} :
-            die
-    })
+function holdDice(username, dieId) {
+    //Will have to change the index to respective user's
+    //Maybe find boardIndex by user
+
+    const room = getRoomByUsername(username)
+    const board = getBoardByUsername(username)
+
+    //Makes a whole new array
+    if(!room.hasWinner)
+    {
+        board.dice = board.dice.map(die => {
+                    return die.id === dieId ?
+                    {...die, isHeld: !die.isHeld} :
+                    die
+                    })
+    }
 }
 
 function createNewRoom(roomId, diceCount, user)
@@ -272,27 +283,34 @@ function createNewRoom(roomId, diceCount, user)
             "hasWinner": false,
             "players": 
             [{
-                //Dummy data...delete later
-                "user": "dummyData",
-                "abilities": [],
-                "score": 0,
-                "hasWon": false,
-            },
-            {
                 user
             }],
             "diceCount": diceCount,
-            "boards": [{
-                "owner": user.username,
-                "id": nanoid(),
-                "dice": allNewDice(diceCount)
-            }]
+            "boards": []
+            // "boards": [{
+            //     "owner": user.username,
+            //     "id": nanoid(),
+            //     "dice": allNewDice(diceCount)
+            // }]
         }
     )
 
     console.log("New game room created")
     logGamestate(1, 0, 1)
 
+}
+
+function createNewBoard(username){
+    const room = getRoomByUsername(username)
+    const boardId = nanoid()
+
+    room.boards.push(
+        {
+            "owner": username,
+            "id": boardId,
+            "dice": allNewDice(room.diceCount, boardId)
+        }
+    )
 }
 
 function addPlayerToRoom(roomId, username)
@@ -358,7 +376,6 @@ io.on('connect', (socket) => {
     })
 
     socket.on('connectRoom', (roomId, username) => {
-        //TODO: Check if the room exists, if not, create a new one
         if (gameState.rooms.find((room) => {
             if(room.id == roomId)
             return true
@@ -404,13 +421,14 @@ io.on('connect', (socket) => {
     {
         createNewRoom(roomId, 10, getUserByUsername(username))
 
-        setTimeout(() => {
-            //changed before functioning
-            const roomIndex = getRoomIndexByRoomId(roomId)
-            console.log("This is the object emitted:")
-            console.log(gameState.rooms[roomIndex])
-            io.to(roomId).emit('startGame', gameState.rooms[roomIndex])
-        }, 150)
+        const roomIndex = getRoomIndexByRoomId(roomId)
+        console.log("This is the object emitted:")
+        console.log(gameState.rooms[roomIndex])
+        io.to(roomId).emit('startGame', gameState.rooms[roomIndex])
+        
+        // setTimeout(() => {
+        //     //changed before functioning
+        // }, 150)
 
     })
 
@@ -419,24 +437,46 @@ io.on('connect', (socket) => {
         // checkDice(username)
         const room = getRoomByUsername(username)
         const board = getBoardByUsername(username)
-        const roomIndex = getRoomIndexByUsername(username)
-        const boardIndex = getBoardIndexByUsername(username)
-
-        
-        console.log(`Attempting to rollDice according to username: ${username}`)
+        // const roomIndex = getRoomIndexByUsername(username)
+        // const boardIndex = getBoardIndexByUsername(username)
+        // console.log(`Attempting to rollDice according to username: ${username}`)
+        // console.log(`using logGamestate`)
+        // logGamestate(roomIndex, boardIndex, room.players.length - 1) //Temp logging player at i=0
         
         rollDice(username)
-        console.log(`using logGamestate`)
-        logGamestate(roomIndex, boardIndex, room.players.length - 1) //Temp logging player at i=0
-        
-        // console.log(`Logging rollDice(username)`)
-        // console.log(rollDice(username))
-
         l(`Emitting the following board.dice:`)
         l(board.dice)
-        io.to(room.id).emit('rollDice', board.dice)
+        io.to(room.id).emit('rollDice', board)
+    })
+
+    socket.on('holdDice', (username, id) => {
+        const room = getRoomByUsername(username)
+        const board = getBoardByUsername(username)
+        
+        holdDice(username, id)
+
+        io.to(room.id).emit('holdDice', board)
+    })
+
+    socket.on('createBoard', (username) => {
+        createNewBoard(username)
+
+        const room = getRoomByUsername(username)
+        const board = getBoardByUsername(username)
+
+        io.to(room.id).emit('createBoard', board.dice, board)
+        l('logging board from createBoard event')
+        l(board)
+
+        //Update gameState
+        l("room's boards:")
+        l(room.boards)
     })
 })
+
+setInterval(() => {
+    l('routine gameState log:') 
+    l(gameState)}, 60000)
 
 server.listen(3002, () => {
     console.log('listening on *:3002')

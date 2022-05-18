@@ -5,6 +5,7 @@ import SocketClient from './Components/SocketClient.js';
 import Tenzies from "./Components/Tenzies";
 import NewPlayer from "./Components/NewPlayer";
 import RoomInput from "./Components/RoomInput";
+import GameRoom from "./Components/GameRoom"
 
 export default function App() {
 
@@ -13,7 +14,6 @@ export default function App() {
     // Player state
 
     const [receivedData, setReceivedData] = React.useState(false)
-    // const [roomState, setRoomState] = React.useState({})
     const [username, setUsername] = React.useState("")
     const [user, setUser] = React.useState("")
     const [socket, setSocket] = React.useState(null)
@@ -25,6 +25,7 @@ export default function App() {
     }
 
     function connectRoom(room, user) {
+        setReceivedData(true)
         socket?.emit("connectRoom", room, user)
         console.log("connectRoom triggered")
     }
@@ -40,19 +41,7 @@ export default function App() {
             if (socket) socket.disconnect()
         }
     }, [])
-
-    // This will eventually be the "update game-state" useEffect hook
-    // React.useEffect(() => 
-    // {
-    //     if (socket) {
-    //         socket.on('opponentMove', (clients) => {
-    //             setGamestate(clients)
-    //         })
-    //     }
-
-    // }, [socketClient])
     
-
     //BREADCRUMB: Moved socket "newUser" event to newPlayer component
         //!!!Testing removing this hook to stop doubling users
     // React.useEffect(() =>
@@ -66,11 +55,8 @@ export default function App() {
     }, [socket])
 
     React.useEffect(()=>{
-        if(socket) {
-            socket.on('startGame', (roomData) => {
-                setReceivedData(true)
-            })
-        }
+        socket?.on('startGame', (roomData) => {
+            setReceivedData(true)})
     }, [socket])
 
     function startGame() {
@@ -82,25 +68,18 @@ export default function App() {
 
         socket.emit('startGame', room, user)
     }
-
+    
     return (
-        <main>
-            <RoomInput 
-                room = {room}
-                setRoom = {setRoom}
-                connectRoom = {connectRoom}
-            />
+        <main className="center">
+            <h1>Room: {room} </h1>
             {user && receivedData ? 
                 <>
-                    <Tenzies
+                    <GameRoom 
                         socket = {socket}
                         user = {user}
-                    />
-                    <Tenzies
-                        socket = {socket}
-                        user = {user}
-                    />
+                        room = {room}
 
+                    />
                 </>
             :
                 <NewPlayer 
@@ -115,8 +94,6 @@ export default function App() {
                 />
 
             }
-        <button onClick={startGame}> Start Game </button>
-        <h1>Room: {room} </h1>
         </main>
     )
 }
