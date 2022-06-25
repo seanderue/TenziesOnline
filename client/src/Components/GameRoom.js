@@ -100,18 +100,22 @@ const tenziesElements = roomStateRef.current.boards?.map((board) => (
     ))
 
   return (
-    <>
-        {boardCreated ?
-            <>
-                <div>
+    <div className='GameRoom'>
+        <div className='GameRoom_header'>
+            <h1 className="title">Tenzies</h1>
+            <p className="instructions">Roll until all dice are the same. Click each die to freeze it at its current value between rolls.</p>
+        </div>
+        <div className='GameRoom_dice_container'>
+            {boardCreated ?
+                <>
                     {tenziesElements}
-                </div>
-            </>
-            :
-            <>
-                <button onClick={createBoard}>Create Board</button>
-            </>
-        }
-    </>
+                </>
+                :
+                <>
+                    <button onClick={createBoard}>Create Board</button>
+                </>
+            }
+        </div>
+    </div>
   )
 }

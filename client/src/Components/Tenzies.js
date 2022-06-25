@@ -147,16 +147,13 @@ export default function Tenzies({ roomState, boardDice, boardOwner, boardId, soc
     }
 
     return(
-        <div className="game-container">
+        <div className={userOwnsBoard() ? "game-container owner": "game-container"}>
             {tenziesWin && <Confetti />}
-            <h1 className="title">Tenzies</h1>
-            <p className="instructions">Roll until all dice are the same. 
-            Click each die to freeze it at its current value between rolls.</p>
             <div className="owner-tag-container">
                 <p className="owner-tag"> Board owner: {boardOwner}</p>
             </div>
             
-            <div className="dice-container">
+            <div className={userOwnsBoard() ? "dice-container owner": "dice-container"}>
                 {diceElements}
             </div>
             {

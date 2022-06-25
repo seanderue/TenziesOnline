@@ -82,16 +82,19 @@ export default function App() {
                     />
                 </>
             :
-                <NewPlayer 
-                    setUser = {setUser}
-                    user = {user}
-                    setUsername = {setUsername}
-                    username = {username}
-                    setRoom = {setRoom}
-                    room = {room}
-                    sendUserToDatabase = {sendUserToDatabase}
-                    connectRoom = {connectRoom}
-                />
+                <>
+                    <h3>Enter your display name and room name to join a room</h3>
+                    <NewPlayer 
+                        setUser = {setUser}
+                        user = {user}
+                        setUsername = {setUsername}
+                        username = {username}
+                        setRoom = {setRoom}
+                        room = {room}
+                        sendUserToDatabase = {sendUserToDatabase}
+                        connectRoom = {connectRoom}
+                        />
+                </>
 
             }
         </main>

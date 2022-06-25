@@ -33,12 +33,11 @@ main {
 }
 
 .owner-tag-container {
-    width: 60%;
+    width: 100%;
+    text-align: center;
 }
 
 .owner-tag {
-    justify-self: left;
-    text-align: left;
 
 }
 
@@ -50,23 +49,39 @@ main {
     text-align: center;
 }
 
-.game-container {
-    display: flex;
-    flex-direction: column;
-    justify-content: space-around;
-    align-items: center;
-    border: #0B2434;
-    margin-bottom: 60px;
+.GameRoom_dice_container {
+    display: grid;
+    grid-template-areas:
+    'owner opponent';
+    grid-template-columns: repeat(2, 1fr);
+    grid-template-rows: repeat(4, 1fr);
+    column-gap: 100px;
+    
 }
 
-.dice-container {
+.GameRoom_header {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.game-container {
+    /* grid-area: opponent; */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    border: #0B2434;
+}
+
+.dice-container.owner {
     display: grid;
     grid-template: auto auto / repeat(5, 1fr);
     gap: 20px;
     margin-bottom: 40px;
 }
 
-.die-face {
+.dice-container.owner > .die-face {
     height: 50px;
     width: 50px;
     box-shadow: 0px 2px 2px rgba(0, 0, 0, 0.15);
@@ -77,8 +92,42 @@ main {
     cursor: pointer;
 }
 
-.die-num {
+.dice-container.owner > .die-face > .die-num {
     font-size: 2rem;
+}
+
+.dice-container {
+    display: grid;
+    grid-template: auto auto / repeat(5, 1fr);
+    gap: 10px;
+    margin-bottom: 40px;
+}
+
+
+
+.game-container.owner {
+    margin-left: 40%;
+    grid-area: 1 / 1 / 5 / 2
+}
+
+.dice-container.owner {
+    /* background-color: #5035FF; */
+    padding: 20px;
+}
+
+.die-face {
+    height: 25px;
+    width: 25px;
+    box-shadow: 0px 2px 2px rgba(0, 0, 0, 0.15);
+    border-radius: 5px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: default;
+}
+
+.die-num {
+    font-size: 1rem;
 }
 
 .roll-dice {

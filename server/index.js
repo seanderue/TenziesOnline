@@ -391,7 +391,7 @@ io.on('connect', (socket) => {
         else
         {
             l('Outside "includes roomId" conditional')
-            createNewRoom(roomId, 10, getUserBySocket(socket.id))
+            createNewRoom(roomId, 25, getUserBySocket(socket.id))
             userEnterRoom(username, roomId)
             socket.join(roomId)
             const roomIndex = gameState.rooms.findIndex(room => room.id === roomId)
